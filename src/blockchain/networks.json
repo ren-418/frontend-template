@@ -1,0 +1,66 @@
+[
+	{
+		"chainId": 1,
+		"name": "Ethereum Mainnet",
+		"symbol": "ETH",
+		"decimals": 18,
+		"rpc": "https://mainnet.infura.io/v3/",
+		"explorer": "https://etherscan.io"
+	},
+	{
+		"chainId": 5,
+		"name": "Goerli test network",
+		"symbol": "GoerliETH",
+		"decimals": 18,
+		"rpc": "https://goerli.infura.io/v3/",
+		"explorer": "https://etherscan.io"
+	},
+	{
+		"chainId": 11155111,
+		"name": "Sepolia test network",
+		"symbol": "SepoliaETH",
+		"decimals": 18,
+		"rpc": "https://sepolia.infura.io/v3/",
+		"explorer": "https://sepolia.etherscan.io"
+	},
+	{
+		"chainId": 56,
+		"name": "Binance Smart Chain Mainnet",
+		"symbol": "BNB",
+		"decimals": 18,
+		"rpc": "https://bsc-dataseed1.binance.org",
+		"explorer": "https://bscscan.com"
+	},
+	{
+		"chainId": 97,
+		"name": "Binance Smart Chain Testnet",
+		"symbol": "tBNB",
+		"decimals": 18,
+		"rpc": "https://data-seed-prebsc-1-s1.binance.org:8545",
+		"explorer": "https://testnet.bscscan.com"
+	},
+	{
+		"chainId": 250,
+		"name": "Fantom Opera",
+		"symbol": "FTM",
+		"decimals": 18,
+		"rpc": "https://endpoints.omniatech.io/v1/fantom/mainnet/public",
+		"explorer": "https://ftmscan.com"
+	},
+	{
+		"chainId": 4002,
+		"name": "Fantom Testnet",
+		"symbol": "FTM",
+		"decimals": 18,
+		"rpc": "https://fantom-testnet.public.blastapi.io",
+		"explorer": "https://testnet.ftmscan.com"
+	},
+	{
+		"chainId": 421613,
+		"name": "Arbitrum Goerli",
+		"symbol": "AGOR",
+		"decimals": 18,
+		"rpc": "https://goerli-rollup.arbitrum.io/rpc",
+		"explorer": "https://goerli.arbiscan.io"
+	}
+]
