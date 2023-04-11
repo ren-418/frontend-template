@@ -6,9 +6,6 @@ import './assets/style/index.scss'
 
 import Loading from './components/Loading';
 import Home from './pages/Home';
-import Farm from './pages/Farm';
-import FarmDetail from './pages/FarmDetail';
-import Affiliate from './pages/Affiliate';
 import { Now } from './util';
 import useStore from './useStore';
 
@@ -39,9 +36,6 @@ function App() {
 		<BrowserRouter>
 			<Switch>
 				<Route exact path="/" component={Home}></Route>
-				<Route exact path="/farm" component={Farm}></Route>
-				<Route exact path="/farm-detail" component={FarmDetail}></Route>
-				<Route exact path="/affiliate" component={Affiliate}></Route>
 				<Route exact path="*" component={Home}></Route>
 			</Switch>
 			<NotificationContainer/>

@@ -1,15 +1,10 @@
 import React from 'react'
 import { Link, useHistory } from 'react-router-dom';
-import decode from "jwt-decode";
-import { useWallet } from 'use-wallet'
 import styled from 'styled-components'
-import detectEthereumProvider from '@metamask/detect-provider'
 import useStore from '../../useStore';
 import Modal from '../Modal'
 import Icon from '../Icon';
 import { Now, copyToClipboard, tips, validateEmail, validateUsername } from '../../util';
-import config from '../../config.json'
-import networks from '../../blockchain/networks.json'
 
 import logo from '../../assets/img/logo.webp'
 import bnb from '../../assets/img/bnb.svg'
@@ -30,7 +25,6 @@ interface HeaderInterface {
 const Header = () => {
 	// @ts-ignore
 	const history = useHistory();
-	const wallet = useWallet()
 	const {logined, currentAccountAddress, update, call} = useStore()
 
 	const [status, setStatus] = React.useState<HeaderInterface>({
@@ -48,198 +42,9 @@ const Header = () => {
 	const updateStatus = (params: Partial<HeaderInterface>) => setStatus({ ...status, ...params })
 	
 
-	const login = async () => {
-		try {
-			if(status.walletStatus === 0) {
-				return window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn", "_blank");
-			}
-			else if(status.walletStatus === 1) {
-				await wallet.connect()
-			}
-			else if(status.walletStatus === 2) {
-				update({loading: true})
-				const signature = await sign()
-				update({loading: true})
-				const result = await call("/api/login", {
-					address: wallet.account,
-					sign: signature,
-				})
-				if(result){
-					switch(result['message']) {
-						case "success": {
-							const token = result['token'];
-							var data = decode(token) as any;
-							update({
-								currentAccountMail: data.email, 
-								currentAccountName: data.name, 
-								currentAccountAddress: data.address,
-								token: token, 
-								logined: true,
-								lasttime: Now()
-							})
-							tips("success", "Welcome to login"); 
-							updateStatus({showLoginModal: false, showMenuModal: false})
-							history.push("/")
-							break;
-						}
-						case "Please enter all required data.": tips("error", "Please enter all required data"); break;
-						case "No exists user.": tips("error", "User doesn't exists"); break;
-						case "No match password.": tips("warning", "Incorrect password"); break;
-						case "internal error": tips("error", "Error"); break;
-					}
-				}
-				update({loading: false})
-			}
-			else if(status.walletStatus === 3) {
-				switchNetwork(config.CHAINID)
-			}
-		} catch(ex) {
-			console.log(ex.message)
-			update({loading: false})
-			return tips("error", "Error")
-		}
-	}
-
-	const signup = async () => {
-		try {
-			const name = status.signupname;
-			const email = status.signupmail;
-			if(email.trim() === "" || !validateEmail(email)) return tips("error", "Email format invalid");
-			if(name.trim() === "" || !validateUsername(name)) return tips("error", "Name format invalid");
-			
-			if(status.walletStatus === 0) {
-				return window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn", "_blank");
-			}
-			else if(status.walletStatus === 1) {
-				await wallet.connect()
-			}
-			else if(status.walletStatus === 2) {
-				update({loading: true})
-				const signature = await sign()
-				const result = await call("/api/signup/register", {
-					name: name,
-					email: email,
-					address: wallet.account,
-					sign: signature
-				})
-				if(result){
-					switch(result['message']) {
-						case "success": tips("success", "Registered successfully"); updateStatus({showRegisterModal: false, showLoginModal: true, showMenuModal: false}); break;
-						case "Please enter all required data.": tips("error", "Invalid input value"); break;
-						case "Already exists same name or email or phone.": tips("error", "Already registered same user"); break;
-						case "internal error": tips("error", "Error"); break;
-					}
-				}
-				update({loading: false})
-			}
-			else if(status.walletStatus === 3) {
-				switchNetwork(config.CHAINID)
-			}
-		} catch(ex) {
-			update({loading: false})
-			return tips("error", "Error")
-		}
-	} 
-
-	const detect = async () => {
-		const provider = await detectEthereumProvider()
-		if (provider) {
-			updateStatus({ walletStatus: 1 })
-		} else {
-			updateStatus({ walletStatus: 0 })
-		}
-	}
-
-	const switchNetwork = async (chainId: number) => {
-		try {
-			const ret = await wallet.ethereum.request({
-				method: 'wallet_switchEthereumChain',
-				params: [{ chainId: '0x' + Number(chainId).toString(16) }],
-			})
-		} catch (error) {
-			console.log(error)
-			addNetwork(config.CHAINID)
-		}
-	}
-
-	const addNetwork = async (chainId: number) => {
-		try {
-			const network = networks.find((data) => data.chainId == chainId)
-			await wallet.ethereum.request({
-				method: 'wallet_addEthereumChain',
-				params: [
-					{
-						chainId: `0x${Number(chainId).toString(16)}`,
-						chainName: network.name,
-						nativeCurrency: {
-							name: network.name,
-							symbol: network.symbol,
-							decimals: network.decimals,
-						},
-						rpcUrls: [network.rpc],
-						blockExplorerUrls: [network.explorer],
-					},
-				],
-			})
-			switchNetwork(chainId)
-		} catch (err) {
-			tips('warning', "Error add network ")
-		}
-	}
-
-	const sign = async () => {
-		try {
-			const signature = await wallet.ethereum?.request({
-				method: 'personal_sign',
-				params: [
-					`Welcome to CBETWORLD! \n Click to sign in and accept the Terms of Service. \n This request will not trigger a blockchain transaction or cost any gas fees. \n Wallet address: ${wallet.account}`,
-					wallet.account,
-				],
-			})
-			return signature
-		} catch (err) {
-			console.log(err)
-		}
-	}
-
-	React.useEffect(() => {
-		detect()
-	}, [])
-
 
 	const logOut = () => {
-		update({
-			currentAccountMail: '',
-			currentAccountName: '',
-			currentAccountAddress: '',
-			token: '',
-			logined: false,
-			lasttime: 0,
-		})
-		updateStatus({showWalletModal: false, showMenuModal: false})
-		wallet.reset()
 	}
-
-	React.useEffect(() => {
-		// if (!wallet.ethereum && logined ) return logOut()
-		if (wallet.status != 'connected') {
-			wallet.connect()
-			updateStatus({ walletStatus: 1 })
-			return
-		}
-		if (
-			wallet.account &&
-			!logined &&
-			Number(wallet.chainId) === config.CHAINID
-		) {
-			updateStatus({ walletStatus: 2 })
-		}
-		if ((!logined && status.walletStatus == 1)) {
-			if (Number(wallet.chainId) !== config.CHAINID) {
-				updateStatus({ walletStatus: 3 })
-			}
-		}
-	}, [wallet.chainId, wallet.status, status.walletStatus])
 
 	return (
 		<StyledHeader>
@@ -383,7 +188,7 @@ const Header = () => {
 				<input type="text" style={{width: '100%', fontSize: '18px'}} value={status.signupmail} onChange={(v) => {updateStatus({signupmail: v.target.value})}}/>
 				<p className='mt3 mb1'>Username</p>
 				<input type="text" style={{width: '100%', fontSize: '18px'}} value={status.signupname} onChange={(v) => {updateStatus({signupname: v.target.value})}}/>
-				<button className="btn mt3" style={{backgroundColor: '#1F8A00'}} onClick={signup}>
+				<button className="btn mt3" style={{backgroundColor: '#1F8A00'}} >
 					{
 						status.walletStatus === 0 && "Install metamask"
 					}
@@ -405,7 +210,7 @@ const Header = () => {
 					<Icon icon = "Close" size={22}/>
 				</div>
 				<h1 className='text-center mt3'>SIGN IN</h1>
-				<button className="btn mt3" style={{backgroundColor: '#1F8A00'}} onClick={login}>
+				<button className="btn mt3" style={{backgroundColor: '#1F8A00'}} >
 					{
 						status.walletStatus === 0 && "Install metamask"
 					}
